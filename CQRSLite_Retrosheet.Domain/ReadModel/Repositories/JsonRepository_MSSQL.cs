@@ -1,4 +1,5 @@
 ﻿using CQRSLite_Retrosheet.Domain.ReadModel.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,13 +14,15 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         private Type modelType;
         private string tableName;
         private string repositoryNamespace;
+        private ILogger logger;
 
-        public JsonRepository_MSSQL(string ConnectionString, string RepositoryNamespace)
+        public JsonRepository_MSSQL(string ConnectionString, string RepositoryNamespace, ILoggerFactory LoggerFactory)
         {
             connectionString = ConnectionString;
             modelType = typeof(T);
             tableName = modelType.Name;
             repositoryNamespace = RepositoryNamespace;
+            logger = LoggerFactory.CreateLogger("JsonRepository");
         }
 
         public bool Exists(string id)
@@ -78,14 +81,23 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         {
             var key = MakeKey(item);
             string queryString = "insert into " + "[" + repositoryNamespace + "]." + tableName + " ([key], [json]) values (@key, @json)" + Environment.NewLine;
+            string jsonItem = JsonConvert.SerializeObject(item);
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                SqlCommand command = new SqlCommand(queryString, connection);
-                command.Parameters.AddWithValue("@key", key);
-                command.Parameters.AddWithValue("@json", JsonConvert.SerializeObject(item));
-                connection.Open();
-                await command.ExecuteNonQueryAsync();
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@key", key);
+                    command.Parameters.AddWithValue("@json", jsonItem);
+                    connection.Open();
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            catch(Exception ex)
+            {
+                string itemType = item.GetType().Name;
+                logger.LogError("Save Error ~~~ Error Message: " + ex.Message + " ~~~ Item Type: " + itemType + " ~~~ Item: " + jsonItem);
             }
         }
     }

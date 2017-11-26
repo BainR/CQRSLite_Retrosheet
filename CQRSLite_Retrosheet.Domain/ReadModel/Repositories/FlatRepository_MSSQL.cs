@@ -1,4 +1,6 @@
 ﻿using CQRSLite_Retrosheet.Domain.ReadModel.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -16,14 +18,16 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         private Type modelType;
         private string tableName;
         private string repositoryNamespace;
+        private ILogger logger;
 
-        public FlatRepository_MSSQL(string ConnectionString, string RepositoryNamespace)
+        public FlatRepository_MSSQL(string ConnectionString, string RepositoryNamespace, ILoggerFactory LoggerFactory)
         {
             connectionString = ConnectionString;
             modelType = typeof(T);
             tableName = modelType.Name;
             repositoryNamespace = RepositoryNamespace;
             insertStatement = BuildSqlInsert();
+            logger = LoggerFactory.CreateLogger("FlatRepository");
         }
 
         public bool Exists(string id)
@@ -119,7 +123,9 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                string jsonItem = JsonConvert.SerializeObject(item);
+                string itemType = item.GetType().Name;
+                logger.LogError("Save Error ~~~ Error Message: " + ex.Message + " ~~~ Item Type: " + itemType + " ~~~ Item: " + jsonItem);
             }
         }
 

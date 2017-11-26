@@ -1,4 +1,5 @@
 ﻿using CQRSLite_Retrosheet.Domain.ReadModel.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
@@ -15,14 +16,16 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         private string tableName;
         private string repositoryNamespace;
         private IConnectionMultiplexer redisConnection;
+        private ILogger logger;
 
-        public JsonRepository_Redis(string ConnectionString, string RepositoryNamespace)
+        public JsonRepository_Redis(string ConnectionString, string RepositoryNamespace, ILoggerFactory LoggerFactory)
         {
             connectionString = ConnectionString;
             modelType = typeof(T);
             tableName = modelType.Name;
             repositoryNamespace = RepositoryNamespace;
             redisConnection = ConnectionMultiplexer.Connect(connectionString);
+            logger = LoggerFactory.CreateLogger("RedisRepository");
         }
 
         public bool Exists(string id)
@@ -67,8 +70,18 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         public async Task SaveAsync(T item, Func<T, string> MakeItemId)
         {
             string itemKey = MakeKey(MakeItemId(item));
-            var database = redisConnection.GetDatabase();
-            await database.StringSetAsync(itemKey, JsonConvert.SerializeObject(item));
+            string jsonItem = JsonConvert.SerializeObject(item);
+
+            try
+            {
+                var database = redisConnection.GetDatabase();
+                await database.StringSetAsync(itemKey, jsonItem);
+            }
+            catch (Exception ex)
+            {
+                string itemType = item.GetType().Name;
+                logger.LogError("Save Error ~~~ Error Message: " + ex.Message + " ~~~ Item Type: " + itemType + " ~~~ Item: " + jsonItem);
+            }
         }
 
         private string MakeKey(string id)
