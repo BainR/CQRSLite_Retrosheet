@@ -18,14 +18,14 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         private IConnectionMultiplexer redisConnection;
         private ILogger logger;
 
-        public JsonRepository_Redis(string ConnectionString, string RepositoryNamespace, ILoggerFactory LoggerFactory)
+        public JsonRepository_Redis(string ConnectionString, string RepositoryNamespace, ILoggerFactory loggerFactory)
         {
             connectionString = ConnectionString;
             modelType = typeof(T);
             tableName = modelType.Name;
             repositoryNamespace = RepositoryNamespace;
             redisConnection = ConnectionMultiplexer.Connect(connectionString);
-            logger = LoggerFactory.CreateLogger("RedisRepository");
+            logger = loggerFactory.CreateLogger("RedisRepository");
         }
 
         public bool Exists(string id)

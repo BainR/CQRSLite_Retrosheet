@@ -398,21 +398,13 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 GO
-
-
-
-
-
-/****** Object:  Table [dbo].[Log]    Script Date: 11/12/2017 8:24:19 PM ******/
+/****** Object:  Table [dbo].[Log]    Script Date: 11/26/2017 4:10:44 AM ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
-
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Log]') AND type in (N'U'))
 BEGIN
-
 CREATE TABLE [dbo].[Log](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Application] [nvarchar](50) NOT NULL,
@@ -427,5 +419,3 @@ CREATE TABLE [dbo].[Log](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 GO
-
-

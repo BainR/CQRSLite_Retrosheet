@@ -16,14 +16,14 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         private string repositoryNamespace;
         private ILogger logger;
 
-        public JsonRepository_MSSQL(string ConnectionString, string RepositoryNamespace, ILoggerFactory LoggerFactory)
+        public JsonRepository_MSSQL(string ConnectionString, string RepositoryNamespace, ILoggerFactory loggerFactory)
         {
             connectionString = ConnectionString;
             modelType = typeof(T);
             tableName = modelType.Name;
             repositoryNamespace = RepositoryNamespace;
-            logger = LoggerFactory.CreateLogger("JsonRepository");
-        }
+            logger = loggerFactory.CreateLogger("JsonRepository");
+    }
 
         public bool Exists(string id)
         {
@@ -94,7 +94,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
                     await command.ExecuteNonQueryAsync();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string itemType = item.GetType().Name;
                 logger.LogError("Save Error ~~~ Error Message: " + ex.Message + " ~~~ Item Type: " + itemType + " ~~~ Item: " + jsonItem);

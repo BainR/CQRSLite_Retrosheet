@@ -17,12 +17,13 @@ using System;
 using CQRSLite_Retrosheet.Domain.ReadModel.Repositories;
 using CQRSLite_Retrosheet.Domain.ReadModel;
 using CQRSLite_Retrosheet.Domain.ReadModel.Repositories.Interfaces;
+using CQRSLite_Retrosheet.Web.RabbitMQ;
 using CQRSLite_Retrosheet.Web.Filters;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using CQRSLite_Retrosheet.Domain.Requests;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace CQRSLite_Retrosheet.Web
 {
@@ -85,10 +86,14 @@ namespace CQRSLite_Retrosheet.Web
             services.AddMemoryCache();
 
             //Add Cqrs services
-            services.AddSingleton<Router>(new Router());
-            services.AddSingleton<ICommandSender>(y => y.GetService<Router>());
-            services.AddSingleton<IEventPublisher>(y => y.GetService<Router>());
-            services.AddSingleton<IHandlerRegistrar>(y => y.GetService<Router>());
+            //services.AddSingleton<Router>(new Router());
+            services.AddSingleton<RabbitMQRouter>(new RabbitMQRouter());
+            //services.AddSingleton<ICommandSender>(y => y.GetService<Router>());
+            services.AddSingleton<ICommandSender>(y => y.GetService<RabbitMQRouter>());
+            //services.AddSingleton<IEventPublisher>(y => y.GetService<Router>());
+            services.AddSingleton<IEventPublisher>(y => y.GetService<RabbitMQRouter>());
+            //services.AddSingleton<IHandlerRegistrar>(y => y.GetService<Router>());
+            services.AddSingleton<IHandlerRegistrar>(y => y.GetService<RabbitMQRouter>());
             services.AddScoped<CQRSlite.Domain.ISession, Session>();
             services.AddSingleton<IEventStore, InMemoryEventStore>(); 
             services.AddScoped<ICache, MemoryCache>();
@@ -127,7 +132,6 @@ namespace CQRSLite_Retrosheet.Web
 
             //Register router
             var serviceProvider = services.BuildServiceProvider();
-            //var registrar = new RouteRegistrar(new DependencyResolver(serviceProvider));
             var registrar = new RouteRegistrar(new Provider(serviceProvider));
             registrar.Register(typeof(RetrosheetCommandHandlers));
 

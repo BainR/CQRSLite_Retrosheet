@@ -20,14 +20,14 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
         private string repositoryNamespace;
         private ILogger logger;
 
-        public FlatRepository_MSSQL(string ConnectionString, string RepositoryNamespace, ILoggerFactory LoggerFactory)
+        public FlatRepository_MSSQL(string ConnectionString, string RepositoryNamespace, ILoggerFactory loggerFactory)
         {
             connectionString = ConnectionString;
             modelType = typeof(T);
             tableName = modelType.Name;
             repositoryNamespace = RepositoryNamespace;
             insertStatement = BuildSqlInsert();
-            logger = LoggerFactory.CreateLogger("FlatRepository");
+            logger = loggerFactory.CreateLogger("FlatRepository");
         }
 
         public bool Exists(string id)
@@ -121,7 +121,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel.Repositories
                     await command.ExecuteNonQueryAsync();
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 string jsonItem = JsonConvert.SerializeObject(item);
                 string itemType = item.GetType().Name;

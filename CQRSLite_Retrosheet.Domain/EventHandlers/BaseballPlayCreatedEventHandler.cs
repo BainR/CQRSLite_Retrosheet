@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using CQRSlite.Commands;
 using CQRSlite.Events;
+using CQRSLite_Retrosheet.Domain.Commands;
 using CQRSLite_Retrosheet.Domain.Events;
 using CQRSLite_Retrosheet.Domain.ReadModel;
 using CQRSLite_Retrosheet.Domain.ReadModel.Repositories;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace CQRSLite_Retrosheet.Domain.EventHandlers
@@ -27,11 +29,17 @@ namespace CQRSLite_Retrosheet.Domain.EventHandlers
         public async Task Handle(BaseballPlayCreatedEvent message)
         {
             BaseballPlayRM baseballPlay = _mapper.Map<BaseballPlayRM>(message);
-            Dictionaries.Dictionaries.cdBaseballPlayRM.GetOrAdd(message.RetrosheetGameId + message.EventNumber.ToString("000"), baseballPlay);
 
-            if (message.Details.EndOfGame)
+            if (!message.Details.EndOfGame)
+            {
+                QueueBaseballPlayRMCommand cmd = new QueueBaseballPlayRMCommand(Guid.NewGuid(), baseballPlay);
+                await _commandSender.Send(cmd);
+            }
+            else
             {
                 baseballGameCompletedLogger.LogTrace(message.RetrosheetGameId);
+                QueueGameCompletedCommand cmd = new QueueGameCompletedCommand(Guid.NewGuid(), baseballPlay.RetrosheetGameId, baseballPlay.EndOfPlay_HomeScore, baseballPlay.EndOfPlay_VisitorScore);
+                await _commandSender.Send(cmd);
             }
 
             await _baseballPlayRepo.SaveAsync(baseballPlay);

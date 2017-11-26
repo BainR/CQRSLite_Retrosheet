@@ -8,7 +8,7 @@ This program loads Retrosheet event data into various repositories using the CQR
 
 ## Prerequisites
 
-DotNet Core 2, Sql Server, Redis (optional)
+DotNet Core 2, RabbitMQ, Redis, Sql Server
 
 ## Getting Started
 
@@ -26,14 +26,6 @@ This application can run on Windows 10, some versions of Linux including Ubuntu,
 This application can be run like any other DotNet Core application.  I have run it in debug mode on Windows 10 using Visual Studio and on Linux using Visual Studio Code.  The release version of the code can be published and run using the dotnet runtime environment.
 
 First, run LoadGames together with the Web component to enter the data into MSSQL or Redis.  Then the Web component can be run by itself to preview the data.  The QueryController.cs file in CQRSLite_Retrosheet.Web/Controllers has several example urls relating to the 1991 World Series.
-
-### RabbitMQ Branch
-
-This repository contains a RabbitMQ branch.  That branch replaces the default Router from CQRSLite with one leveraging more advanced messaging from RabbitMQ.  Although adding complexity to both the program and the program setup, the branch solves the challenge of waiting for multiple requests to trigger a command handler.  If you got this far, please take a look at the RabbitMQ branch too.
-
-### Future Enhancements
-
-This project met my objective of guiding me on a journey to gain hands on experience with the CQRS principles.  However, it falls short of being a practical application.  To help this code gain a wider audience, it would be almost trivial to enable it to save data to MySQL, SQLite, PostgreSQL, and to comma or tab separated text files.  A slightly more difficult challenge would be to include all fields from the Retrosheet utility in the ReadModel from this utility.  A much more difficult challenge would be to increase the performance to the point anyone would want to use this to load more than 12 million rows of data.  Bulk load operations are much more efficient.
 
 ## Author
 

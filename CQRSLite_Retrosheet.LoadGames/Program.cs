@@ -69,6 +69,12 @@ namespace CQRSLite_Retrosheet.LoadGames
 
         private static async Task ProcessEventFileAsync(string filename, Stream eventFile, string webServiceBaseURL)
         {
+            // used for debugging
+            //if (!filename.Contains("1993"))
+            //{
+            //    return;
+            //}
+
             Console.WriteLine(filename + DateTime.Now.ToString(" MM/dd/yyyy HH:mm:ss.fff"));
 
             List<List<string>> games = new List<List<string>>();
@@ -202,6 +208,23 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // play
                         try
                         {
+                            if (eventNumber == 1)
+                            {
+                                var body = new
+                                {
+                                    RetrosheetGameId = retrosheetGameId,
+                                    AwayTeam = visteam,
+                                    HomeTeam = hometeam,
+                                    UseDH = usedh,
+                                    ParkCode = site,
+                                    WinningPitcher = wp,
+                                    LosingPitcher = lp,
+                                    SavePitcher = save
+                                };
+
+                                await CallAPIAsync(webServiceBaseURL, "Retrosheet/Write/GameSummary", JsonConvert.SerializeObject(body));
+                            }
+
                             string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "play"
                             int inning = int.Parse(fields[1]);
                             int teamAtBat = int.Parse(fields[2]); // 0 = visitor, 1 = home
@@ -298,27 +321,6 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // data, earned runs for each pitcher, occurs after all play lines and could signal end of game, otherwise don't care
                         if (startOfData)
                         {
-                            var body = new
-                            {
-                                RetrosheetGameId = retrosheetGameId,
-                                AwayTeam = visteam,
-                                HomeTeam = hometeam,
-                                UseDH = usedh,
-                                ParkCode = site,
-                                WinningPitcher = wp,
-                                LosingPitcher = lp,
-                                SavePitcher = save
-                            };
-
-                            try
-                            {
-                                await CallAPIAsync(webServiceBaseURL, "Retrosheet/Write/GameSummary", JsonConvert.SerializeObject(body));
-                            }
-                            catch (HttpRequestException e)
-                            {
-                                Console.WriteLine("Error (Game Summary): " + e.Message);
-                            }
-
                             Console.WriteLine("Completed " + retrosheetGameId + " " + DateTime.Now.ToString(" MM/dd/yyyy HH:mm:ss.fff"));
                             startOfData = false;
                         }
@@ -519,9 +521,9 @@ namespace CQRSLite_Retrosheet.LoadGames
                 if (!response.IsSuccessStatusCode)
                 {
                     string msg = await response.Content.ReadAsStringAsync();
-                    if (msg != "Previous play data not available on server.")
+                    if (!msg.EndsWith(": Previous play had validation errors"))
                     {
-                        Console.WriteLine(response.StatusCode.ToString() + ": " + msg + " (" + methodName + ": " + jsonContent + ")");
+                        Console.WriteLine(msg);
                     }
                 }
             }

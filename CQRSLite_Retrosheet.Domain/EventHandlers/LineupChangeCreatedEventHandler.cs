@@ -32,7 +32,8 @@ namespace CQRSLite_Retrosheet.Domain.EventHandlers
 
             if (!message.LastLineupChange)
             {
-                Dictionaries.Dictionaries.cdLineupRM.GetOrAdd(message.RetrosheetGameId + (message.Sequence).ToString("000"), lineup);
+                QueueLineupRMCommand cmd = new QueueLineupRMCommand(Guid.NewGuid(), lineup);
+                await _commandSender.Send(cmd);
             }
 
             await _lineupChangeRepo.SaveAsync(lineupChange);
