@@ -380,7 +380,11 @@ namespace CQRSLite_Retrosheet.LoadGames
             Console.WriteLine(filename + DateTime.Now.ToString(" MM/dd/yyyy HH:mm:ss.fff"));
 
             HttpClient client = new HttpClient();
-            int year = int.Parse(filename.Substring(filename.Length - 4, 4));
+            int year;
+            if (!int.TryParse(filename.Substring(filename.Length - 4, 4), out year))
+            {
+                return;
+            }
             using (StreamReader reader = new StreamReader(teamFile))
             {
                 do
