@@ -29,7 +29,7 @@ namespace CQRSLite_Retrosheet.Domain.Requests
             RuleFor(x => x.AwayTeam).NotNull().NotEmpty().Length(3).WithMessage("Away team code must have exactly 3 characters.");
             RuleFor(x => x.HomeTeam).NotNull().NotEmpty().Length(3).WithMessage("Home team code must have exactly 3 characters.");
             RuleFor(x => x.UseDH).NotNull().NotEmpty().Must(dh => bool.TryParse(dh, out var _)).WithMessage("UseDH must be true or false");
-            RuleFor(x => x.ParkCode).NotNull().NotEmpty().Length(5).WithMessage("Park code must have exactly 5 characters.");
+            RuleFor(x => x.ParkCode).Must(x => string.IsNullOrEmpty(x) || x.Length == 5).WithMessage("Park code must have exactly 5 characters.");
             RuleFor(x => x.WinningPitcher).Must(p => string.IsNullOrEmpty(p) || p.Length == 8).WithMessage("Winning pitcher, if given, must have exactly 8 characters.");
             RuleFor(x => x.LosingPitcher).Must(p => string.IsNullOrEmpty(p) || p.Length == 8).WithMessage("Losing pitcher, if given, must have exactly 8 characters.");
             RuleFor(x => x.SavePitcher).Must(p => string.IsNullOrEmpty(p) || p.Length == 8).WithMessage("Save pitcher, if given, must have exactly 8 characters.");

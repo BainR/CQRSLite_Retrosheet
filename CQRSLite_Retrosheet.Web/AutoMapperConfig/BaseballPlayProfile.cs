@@ -33,8 +33,8 @@ namespace CQRSLite_Retrosheet.Web.AutoMapperConfig
             play.BasicPlay = source.Details.BasicPlay;
             play.Modifier = source.Details.Modifier;
             play.Batter = source.Batter;
-            play.Balls = source.CountOnBatter == "" ? (int?)null : source.CountOnBatter[0] == '?' ? (int?)null : int.Parse(source.CountOnBatter[0].ToString());
-            play.Strikes = source.CountOnBatter == "" ? (int?)null : source.CountOnBatter[1] == '?' ? (int?)null : int.Parse(source.CountOnBatter[1].ToString());
+            play.Balls = source.CountOnBatter.Length  < 2 ? (int?)null : source.CountOnBatter[0] == '?' ? (int?)null : int.Parse(source.CountOnBatter[0].ToString());
+            play.Strikes = source.CountOnBatter.Length < 2 ? (int?)null : source.CountOnBatter[1] == '?' ? (int?)null : int.Parse(source.CountOnBatter[1].ToString());
             play.Pitches = source.Pitches;
             play.Runner1 = source.Details.Runner1;
             play.Runner2 = source.Details.Runner2;

@@ -112,7 +112,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                 short eventNumber = 0;
                 short lineupChangeSequence = 0;
                 bool startOfData = true;
-                int lastPlayIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("play")).Max(m => m.index);
+                int lastPlayIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("play") && !pair.value.EndsWith(",NP")).Max(m => m.index);
                 int lastLineupChangeIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("start") || pair.value.StartsWith("sub")).Max(m => m.index);
 
                 string hometeam = "";
