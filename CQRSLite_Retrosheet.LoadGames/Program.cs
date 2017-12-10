@@ -22,8 +22,13 @@ namespace CQRSLite_Retrosheet.LoadGames
                 .AddJsonFile("appsettings.json");
             Configuration = builder.Build();
 
-            await LoadTeamsAsync();
-            await LoadRostersAsync();
+            bool loadTeamAndRosterFiles = true;
+            if (bool.TryParse(Configuration["LoadTeamAndRosterFiles"], out loadTeamAndRosterFiles) && loadTeamAndRosterFiles)
+            {
+                await LoadTeamsAsync();
+                await LoadRostersAsync();
+            }
+
             await LoadGamesAsync();
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
@@ -472,6 +477,11 @@ namespace CQRSLite_Retrosheet.LoadGames
 
         private static async Task ProcessRosterFileAsync(string filename, Stream rosterFile, string webServiceBaseURL)
         {
+            if (filename == "AS3315.ROS" || filename == "MULTTEAM.ROS")
+            {
+                return; // unwanted files in allas.zip
+            }
+
             Console.WriteLine(filename + DateTime.Now.ToString(" MM/dd/yyyy HH:mm:ss.fff"));
 
             HttpClient client = new HttpClient();
