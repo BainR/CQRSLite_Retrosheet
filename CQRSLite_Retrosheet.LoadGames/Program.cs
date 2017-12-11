@@ -131,7 +131,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                     if (line.StartsWith("id"))
                     {
                         // new game
-                        retrosheetGameId = line.Split(',')[1];
+                        retrosheetGameId = SplitWithQuotes(line)[1];
                         fileLineNumber = 0;
                         eventNumber = 0;
                         lineupChangeSequence = 0;
@@ -144,6 +144,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                     else if (line.StartsWith("info"))
                     {
                         // tracking some info values, ignoring others
+                        // SplitWithQuotes failed in 1936PHA.EVA for info,inputter,"Comly"/Lamoureaux 
                         string[] fields = line.Split(',');
                         switch (fields[1])
                         {
@@ -178,7 +179,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // start
                         try
                         {
-                            string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "start"
+                            string[] fields = SplitWithQuotes(line);
                             string playerId = fields[1];
                             string name = fields[2];
                             int team = int.Parse(fields[3]); // 0 = visiting team, 1 = hometeam
@@ -230,7 +231,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                                 await CallAPIAsync(webServiceBaseURL, "Retrosheet/Write/GameSummary", JsonConvert.SerializeObject(body));
                             }
 
-                            string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "play"
+                            string[] fields = SplitWithQuotes(line); // fields[0] is the word "play"
                             int inning = int.Parse(fields[1]);
                             int teamAtBat = int.Parse(fields[2]); // 0 = visitor, 1 = home
                             string batter = fields[3];
@@ -275,7 +276,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // sub
                         try
                         {
-                            string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "start"
+                            string[] fields = SplitWithQuotes(line); // fields[0] is the word "start"
                             string playerId = fields[1];
                             string name = fields[2];
                             int team = int.Parse(fields[3]); // 0 = visiting team, 1 = hometeam
@@ -395,7 +396,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                 do
                 {
                     string teamData = reader.ReadLine();
-                    string[] fields = teamData.Split(',');
+                    string[] fields = SplitWithQuotes(teamData);
                     if (fields.Count() == 4)
                     {
                         try
@@ -492,7 +493,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                 do
                 {
                     string rosterData = reader.ReadLine();
-                    string[] fields = rosterData.Split(',');
+                    string[] fields = SplitWithQuotes(rosterData);
                     if (fields.Count() >= 5)
                     {
                         try
@@ -546,5 +547,36 @@ namespace CQRSLite_Retrosheet.LoadGames
                 Console.WriteLine("Inside CALLAPI: " + methodName + " : " + jsonContent + " : " + ex.GetBaseException().Message);
             }
         } // CallAPI
+
+        private static string[] SplitWithQuotes(string line)
+        {
+            // handles simple cases of strings containing commas inside quoted fields
+
+            if (line.IndexOf('"') < 0)
+            {
+                return line.Split(',');
+            }
+
+            List<string> fields = new List<string>();
+
+            String remaining = line + ",";
+            while (remaining.Length > 0)
+            {
+                if (remaining[0] == '"')
+                {
+                    int len = remaining.IndexOf("\",");
+                    fields.Add(remaining.Substring(1, len - 1));
+                    remaining = remaining.Substring(len + 2);
+                }
+                else
+                {
+                    int len = remaining.IndexOf(",");
+                    fields.Add(remaining.Substring(0, len));
+                    remaining = remaining.Substring(len + 1);
+                }
+            }
+
+            return fields.ToArray();
+        }
     } // Program
 } // CQRSLite_Retrosheet.LoadGames
