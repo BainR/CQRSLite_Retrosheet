@@ -184,7 +184,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                             string name = fields[2];
                             int team = int.Parse(fields[3]); // 0 = visiting team, 1 = hometeam
                             int battingOrder = int.Parse(fields[4]); // batting order position
-                            int fieldPosition = int.Parse(fields[5]); // position in field
+                            int fieldPosition = int.Parse(fields[5].Substring(0, 1)); // position in field // fails on 1941BOS.EVA start,dobsj101,"Joe Dobson",1,9,1f
                             bool lastLineupChange = fileLineNumber == lastLineupChangeIndex;
                             lineupChangeSequence++;
 
