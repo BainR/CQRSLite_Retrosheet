@@ -233,7 +233,7 @@ namespace CQRSLite_Retrosheet.LoadGames
 
                             string[] fields = SplitWithQuotes(line); // fields[0] is the word "play"
                             int inning = int.Parse(fields[1]);
-                            int teamAtBat = int.Parse(fields[2]); // 0 = visitor, 1 = home
+                            int teamAtBat = fields[6] == "NP" ? -1 : int.Parse(fields[2]); // 0 = visitor, 1 = home // workaround for play,5,b,gardb101,??,,NP in game KC1196307180 of 1963KC!.EVA
                             string batter = fields[3];
                             string countOnBatter = fields[4]; // could be ??, otherwise two digis, balls followed by strikes
                             string pitches = fields[5]; // could be empty
