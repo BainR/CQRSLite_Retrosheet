@@ -112,8 +112,19 @@ namespace CQRSLite_Retrosheet.LoadGames
                 short eventNumber = 0;
                 short lineupChangeSequence = 0;
                 bool startOfData = true;
-                int lastPlayIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("play") && !pair.value.EndsWith(",NP")).Max(m => m.index);
-                int lastLineupChangeIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("start") || pair.value.StartsWith("sub")).Max(m => m.index);
+
+                int lastPlayIndex;
+                int lastLineupChangeIndex;
+
+                if (game.Any(x => x.StartsWith("play")))
+                {
+                    lastPlayIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("play") && !pair.value.EndsWith(",NP")).Max(m => m.index);
+                    lastLineupChangeIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("start") || pair.value.StartsWith("sub")).Max(m => m.index);
+                }
+                else
+                {
+                    continue; // some files start with Copyright comments
+                }
 
                 string hometeam = "";
                 string visteam = "";

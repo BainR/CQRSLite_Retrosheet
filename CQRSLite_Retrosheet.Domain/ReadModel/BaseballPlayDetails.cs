@@ -72,6 +72,8 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
 
         private void setDetails(BaseballPlayRM previousEvent, string RetrosheetGameId, int EventNumber, string EventText, bool LastPlay)
         {
+            // TODO - add logic for games in which the home team bats first.  Validation rules will need changes too.  See SEA200709261
+
             this.RetrosheetGameId = RetrosheetGameId;
             this.EventNumber = EventNumber;
             this.EventText = EventText;
