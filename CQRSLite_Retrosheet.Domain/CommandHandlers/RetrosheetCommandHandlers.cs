@@ -46,7 +46,7 @@ namespace CQRSLite_Retrosheet.Domain.CommandHandlers
         {
             GameSummary gameSummary = new GameSummary(command.Id, command.RetrosheetGameId, command.AwayTeam, command.HomeTeam, 
                 command.UseDH, command.ParkCode, command.WinningPitcher, command.LosingPitcher, command.SavePitcher, 
-                command.HasValidationErrors, command.GameDay, command.HomeTeamFinalScore, command.AwayTeamFinalScore);
+                command.HasValidationErrors, command.GameDay, command.HomeTeamFinalScore, command.AwayTeamFinalScore, command.HomeTeamBatsFirst);
             await _session.Add(gameSummary);
             await _session.Commit();
         }
@@ -68,6 +68,7 @@ namespace CQRSLite_Retrosheet.Domain.CommandHandlers
             command.Request.GameDay = summary.RetrosheetGameId.Substring(3, 8);
             command.Request.HomeTeamFinalScore = summary.HomeTeamFinalScore;
             command.Request.AwayTeamFinalScore = summary.AwayTeamFinalScore;
+            command.Request.HomeTeamBatsFirst = summary.HomeTeamBatsFirst;
             var cmd = _mapper.Map<CreateGameSummaryCommand>(command.Request);
             await _commandSender.Send(cmd);
         }
@@ -93,6 +94,7 @@ namespace CQRSLite_Retrosheet.Domain.CommandHandlers
             summaryRequest.AwayTeamFinalScore = command.AwayTeamFinalScore;
             summaryRequest.HomeTeamFinalScore = command.HomeTeamFinalScore;
             summaryRequest.GameDay = command.RetrosheetGameId.Substring(3, 8);
+            summaryRequest.HomeTeamBatsFirst = command.HomeTeamBatsFirst;
             summaryRequest.HasValidationErrors = false;
             var cmd = _mapper.Map<CreateGameSummaryCommand>(summaryRequest);
             await _commandSender.Send(cmd);
@@ -124,7 +126,8 @@ namespace CQRSLite_Retrosheet.Domain.CommandHandlers
                 }
             }
 
-            BaseballPlayDetails details = new BaseballPlayDetails(previousPlay, command.Request.RetrosheetGameId, command.Request.EventNumber, command.Request.EventText, command.Request.LastPlay);
+            BaseballPlayDetails details = new BaseballPlayDetails(previousPlay, command.Request.RetrosheetGameId, command.Request.EventNumber, 
+                command.Request.TeamAtBat.ToString(), command.Request.EventText, command.Request.LastPlay);
             command.Request.Details = details;
 
             CreateBaseballPlayRequestValidator validator = new CreateBaseballPlayRequestValidator();
@@ -170,7 +173,8 @@ namespace CQRSLite_Retrosheet.Domain.CommandHandlers
                 }
             }
 
-            var details = new BaseballPlayDetails(command.BaseballPlay, nextRequest.RetrosheetGameId, nextRequest.EventNumber, nextRequest.EventText, nextRequest.LastPlay);
+            var details = new BaseballPlayDetails(command.BaseballPlay, nextRequest.RetrosheetGameId, nextRequest.EventNumber, 
+                nextRequest.TeamAtBat.ToString(), nextRequest.EventText, nextRequest.LastPlay);
             nextRequest.Details = details;
 
             CreateBaseballPlayRequestValidator validator = new CreateBaseballPlayRequestValidator();

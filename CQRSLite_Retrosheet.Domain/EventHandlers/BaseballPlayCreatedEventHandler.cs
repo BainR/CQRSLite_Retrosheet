@@ -38,7 +38,8 @@ namespace CQRSLite_Retrosheet.Domain.EventHandlers
             else
             {
                 baseballGameCompletedLogger.LogTrace(message.RetrosheetGameId);
-                QueueGameCompletedCommand cmd = new QueueGameCompletedCommand(Guid.NewGuid(), baseballPlay.RetrosheetGameId, baseballPlay.EndOfPlay_HomeScore, baseballPlay.EndOfPlay_VisitorScore);
+                bool homeTeamBatsFirst = (message.Details.TeamAtBat == "V" && message.Details.IsBottomHalf == true) || (message.Details.TeamAtBat == "H" && message.Details.IsBottomHalf == false);
+                QueueGameCompletedCommand cmd = new QueueGameCompletedCommand(Guid.NewGuid(), baseballPlay.RetrosheetGameId, baseballPlay.EndOfPlay_HomeScore, baseballPlay.EndOfPlay_VisitorScore, homeTeamBatsFirst);
                 await _commandSender.Send(cmd);
             }
 

@@ -10,6 +10,7 @@ namespace CQRSLite_Retrosheet.Domain.Requests
         public string AwayTeam { get; set; }
         public string HomeTeam { get; set; }
         public string UseDH { get; set; } // true or false
+        public bool HomeTeamBatsFirst { get; set; }
         public string ParkCode { get; set; }
         public string WinningPitcher { get; set; }
         public string LosingPitcher { get; set; }

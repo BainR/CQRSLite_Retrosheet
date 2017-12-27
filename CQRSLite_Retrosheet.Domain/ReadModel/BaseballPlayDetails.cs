@@ -7,6 +7,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
         #region Properties
         public int Inning { get; set; }
         public string TeamAtBat { get; set; }
+        public bool IsBottomHalf { get; set; }
         public int BattingOrder { get; set; }
         public string RetrosheetGameId { get; set; }
         public int EventNumber { get; set; }
@@ -65,18 +66,17 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
 
         #endregion
 
-        public BaseballPlayDetails(BaseballPlayRM previousEvent, string RetrosheetGameId, int EventNumber, string EventText, bool LastPlay)
+        public BaseballPlayDetails(BaseballPlayRM previousEvent, string RetrosheetGameId, int EventNumber, string TeamAtBat, string EventText, bool LastPlay)
         {
-            setDetails(previousEvent, RetrosheetGameId, EventNumber, EventText, LastPlay);
+            setDetails(previousEvent, RetrosheetGameId, EventNumber, TeamAtBat == "0" || TeamAtBat == "V" ? "V" : "H", EventText, LastPlay);
         }
 
-        private void setDetails(BaseballPlayRM previousEvent, string RetrosheetGameId, int EventNumber, string EventText, bool LastPlay)
+        private void setDetails(BaseballPlayRM previousEvent, string RetrosheetGameId, int EventNumber, string TeamAtBat, string EventText, bool LastPlay)
         {
-            // TODO - add logic for games in which the home team bats first.  Validation rules will need changes too.  See SEA200709261
-
             this.RetrosheetGameId = RetrosheetGameId;
             this.EventNumber = EventNumber;
             this.EventText = EventText;
+            this.TeamAtBat = TeamAtBat;
 
             StartOfPlay = new GameSituation();
             EndOfPlay = new GameSituation();
@@ -84,6 +84,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
             if (previousEvent == null)
             {
                 Inning = 1;
+                IsBottomHalf = false;
                 StartOfPlay.Outs = 0;
                 StartOfPlay.HomeScore = 0;
                 StartOfPlay.VisitorScore = 0;
@@ -94,14 +95,14 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
                 StartOfPlay.RunnerOnThird = false;
                 StartOfPlay.Runner3BO = null;
                 StartOfHalfInning = true;
-                TeamAtBat = "V";
                 BattingOrder = 1;
                 VisitorNextBatter = 2;
                 HomeNextBatter = 1;
             }
             else if (previousEvent.EndOfHalfInning)
             {
-                Inning = previousEvent.TeamAtBat == "H" ? previousEvent.Inning + 1 : previousEvent.Inning;
+                Inning = previousEvent.IsBottomHalf ? previousEvent.Inning + 1 : previousEvent.Inning;
+                IsBottomHalf = !previousEvent.IsBottomHalf;
                 StartOfPlay.Outs = 0;
                 StartOfPlay.HomeScore = previousEvent.EndOfPlay_HomeScore;
                 StartOfPlay.VisitorScore = previousEvent.EndOfPlay_VisitorScore;
@@ -122,6 +123,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
             else
             {
                 Inning = previousEvent.Inning;
+                IsBottomHalf = previousEvent.IsBottomHalf;
                 StartOfPlay.Outs = previousEvent.EndOfPlay_Outs; ;
                 StartOfPlay.HomeScore = previousEvent.EndOfPlay_HomeScore;
                 StartOfPlay.VisitorScore = previousEvent.EndOfPlay_VisitorScore;
@@ -494,9 +496,12 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
             EndOfPlay.VisitorScore = StartOfPlay.VisitorScore + (TeamAtBat == "V" ? RunsOnPlay : 0);
             EndOfPlay.HomeScore = StartOfPlay.HomeScore + (TeamAtBat == "H" ? RunsOnPlay : 0);
             EndOfHalfInning = EndOfPlay.Outs == 3 || LastPlay;
-            EndOfGame = (EndOfHalfInning && TeamAtBat == "V" && Inning == 9 && EndOfPlay.HomeScore > EndOfPlay.VisitorScore)
-                || (TeamAtBat == "H" && Inning >= 9 && EndOfPlay.HomeScore > EndOfPlay.VisitorScore)
-                || (EndOfHalfInning && Inning >= 9 && TeamAtBat == "H" && EndOfPlay.HomeScore < EndOfPlay.VisitorScore)
+            string FirstTeamToBat = IsBottomHalf == true && TeamAtBat == "H" || IsBottomHalf == false && TeamAtBat == "V" ? "V" : "H";
+            int ScoreFirstTeamToBat = FirstTeamToBat == "H" ? EndOfPlay.HomeScore : EndOfPlay.VisitorScore;
+            int ScoreSecondTeamToBat = FirstTeamToBat == "V" ? EndOfPlay.HomeScore : EndOfPlay.VisitorScore;
+            EndOfGame = (EndOfHalfInning && IsBottomHalf == false && Inning == 9 && ScoreSecondTeamToBat > ScoreFirstTeamToBat)
+                || (IsBottomHalf && Inning >= 9 && ScoreSecondTeamToBat > ScoreFirstTeamToBat)
+                || (EndOfHalfInning && Inning >= 9 && IsBottomHalf && ScoreSecondTeamToBat < ScoreFirstTeamToBat)
                 || LastPlay;
             EndOfPlay.RunnerOnFirst = (rbd == 1 || R1Destination == 1 || r2d == 1 || r3d == 1);
             EndOfPlay.Runner1BO = rbd == 1 ? (byte)BattingOrder : R1Destination == 1 ? StartOfPlay.Runner1BO : r2d == 1 ? StartOfPlay.Runner2BO : r3d == 1 ? StartOfPlay.Runner3BO : null;

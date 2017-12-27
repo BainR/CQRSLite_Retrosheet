@@ -18,12 +18,13 @@ namespace CQRSLite_Retrosheet.Domain.WriteModel
         private string _GameDay;
         private int? _HomeTeamFinalScore;
         private int? _AwayTeamFinalScore;
+        private bool _HomeTeamBatsFirst;
 
         private GameSummary() { }
 
         public GameSummary(Guid id, string retrosheetGameId, string awayTeam, string homeTeam, bool useDH, string parkCode,
             string winningPitcher, string losingPitcher, string savePitcher, bool hasValidationErrors, string gameDay,
-            int? homeTeamFinalScore, int? awayTeamFinalScore)
+            int? homeTeamFinalScore, int? awayTeamFinalScore, bool homeTeamBatsFirst)
         {
             Id = id;
             _RetrosheetGameId = retrosheetGameId;
@@ -38,10 +39,11 @@ namespace CQRSLite_Retrosheet.Domain.WriteModel
             _GameDay = gameDay;
             _HomeTeamFinalScore = homeTeamFinalScore;
             _AwayTeamFinalScore = awayTeamFinalScore;
+            _HomeTeamBatsFirst = homeTeamBatsFirst;
 
             ApplyChange(new GameSummaryCreatedEvent(id, retrosheetGameId, awayTeam, homeTeam, useDH, parkCode, 
                 winningPitcher, losingPitcher, savePitcher, hasValidationErrors, 
-                gameDay, homeTeamFinalScore, awayTeamFinalScore));
+                gameDay, homeTeamFinalScore, awayTeamFinalScore, homeTeamBatsFirst));
         }
     }
 }
