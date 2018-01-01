@@ -1,10 +1,8 @@
-﻿using CQRSLite_Retrosheet.Domain.Requests;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Text;
+using Newtonsoft.Json;
 
 namespace CQRSLite_Retrosheet.Web.Filters
 {
@@ -12,9 +10,9 @@ namespace CQRSLite_Retrosheet.Web.Filters
     {
         private ILogger logger;
 
-        public ValidationActionFilter(ILogger<ValidationActionFilter> logger)
+        public ValidationActionFilter(ILoggerFactory loggerFactory)
         {
-            this.logger = logger;
+            logger = loggerFactory.CreateLogger("ValidationActionFilter");
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
@@ -24,14 +22,11 @@ namespace CQRSLite_Retrosheet.Web.Filters
             {
                 context.Result = new BadRequestObjectResult(context.ModelState);
 
-                string body;
-                var req = context.HttpContext.Request;
-                req.EnableRewind();
-                using (StreamReader reader = new StreamReader(req.Body, Encoding.UTF8, true, (int)req.ContentLength, true))
+                string body = ((ControllerActionDescriptor)(context.ActionDescriptor)).ActionName;
+                foreach (var arg in context.ActionArguments)
                 {
-                    body = reader.ReadToEnd();
+                    body = body + JsonConvert.SerializeObject(arg.Value);
                 }
-                req.Body.Position = 0;
 
                 string msg = "";
 
@@ -43,7 +38,7 @@ namespace CQRSLite_Retrosheet.Web.Filters
                     }
                 }
 
-                logger.LogError("Request Body = " + body + " Validation Errors" + msg);
+                logger.LogError("Request = " + body + " Validation Errors" + msg);
             }
         }
 

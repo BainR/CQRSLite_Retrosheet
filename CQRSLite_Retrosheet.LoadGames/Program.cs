@@ -22,8 +22,13 @@ namespace CQRSLite_Retrosheet.LoadGames
                 .AddJsonFile("appsettings.json");
             Configuration = builder.Build();
 
-            await LoadTeamsAsync();
-            await LoadRostersAsync();
+            bool loadTeamAndRosterFiles = true;
+            if (bool.TryParse(Configuration["LoadTeamAndRosterFiles"], out loadTeamAndRosterFiles) && loadTeamAndRosterFiles)
+            {
+                await LoadTeamsAsync();
+                await LoadRostersAsync();
+            }
+
             await LoadGamesAsync();
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
@@ -101,8 +106,18 @@ namespace CQRSLite_Retrosheet.LoadGames
                 short eventNumber = 0;
                 short lineupChangeSequence = 0;
                 bool startOfData = true;
-                int lastPlayIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("play")).Max(m => m.index);
-                int lastLineupChangeIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("start") || pair.value.StartsWith("sub")).Max(m => m.index);
+                int lastPlayIndex;
+                int lastLineupChangeIndex;
+
+                if (game.Any(x => x.StartsWith("play")))
+                {
+                    lastPlayIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("play") && !pair.value.EndsWith(",NP")).Max(m => m.index);
+                    lastLineupChangeIndex = game.Select((value, index) => new { value, index }).Where(pair => pair.value.StartsWith("start") || pair.value.StartsWith("sub")).Max(m => m.index);
+                }
+                else
+                {
+                    continue; // some files start with Copyright comments
+                }
 
                 string hometeam = "";
                 string visteam = "";
@@ -120,7 +135,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                     if (line.StartsWith("id"))
                     {
                         // new game
-                        retrosheetGameId = line.Split(',')[1];
+                        retrosheetGameId = SplitWithQuotes(line)[1];
                         fileLineNumber = 0;
                         eventNumber = 0;
                         lineupChangeSequence = 0;
@@ -133,6 +148,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                     else if (line.StartsWith("info"))
                     {
                         // tracking some info values, ignoring others
+                        // SplitWithQuotes failed in 1936PHA.EVA for info,inputter,"Comly"/Lamoureaux 
                         string[] fields = line.Split(',');
                         switch (fields[1])
                         {
@@ -167,12 +183,12 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // start
                         try
                         {
-                            string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "start"
+                            string[] fields = SplitWithQuotes(line);
                             string playerId = fields[1];
                             string name = fields[2];
                             int team = int.Parse(fields[3]); // 0 = visiting team, 1 = hometeam
                             int battingOrder = int.Parse(fields[4]); // batting order position
-                            int fieldPosition = int.Parse(fields[5]); // position in field
+                            int fieldPosition = int.Parse(fields[5].Substring(0, 1)); // position in field // 1941BOS.EVA start,dobsj101,"Joe Dobson",1,9,1f
                             bool lastLineupChange = fileLineNumber == lastLineupChangeIndex;
                             lineupChangeSequence++;
 
@@ -202,9 +218,9 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // play
                         try
                         {
-                            string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "play"
+                            string[] fields = SplitWithQuotes(line); // fields[0] is the word "play"
                             int inning = int.Parse(fields[1]);
-                            int teamAtBat = int.Parse(fields[2]); // 0 = visitor, 1 = home
+                            int teamAtBat = fields[6] == "NP" ? -1 : int.Parse(fields[2]); // 0 = visitor, 1 = home // workaround for play,5,b,gardb101,??,,NP in game KC1196307180 of 1963KC!.EVA
                             string batter = fields[3];
                             string countOnBatter = fields[4]; // could be ??, otherwise two digis, balls followed by strikes
                             string pitches = fields[5]; // could be empty
@@ -247,7 +263,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                         // sub
                         try
                         {
-                            string[] fields = line.Split(','); // assumes no commas in quoted fields, fields[0] is the word "start"
+                            string[] fields = SplitWithQuotes(line); // fields[0] is the word "start"
                             string playerId = fields[1];
                             string name = fields[2];
                             int team = int.Parse(fields[3]); // 0 = visiting team, 1 = hometeam
@@ -378,13 +394,17 @@ namespace CQRSLite_Retrosheet.LoadGames
             Console.WriteLine(filename + DateTime.Now.ToString(" MM/dd/yyyy HH:mm:ss.fff"));
 
             HttpClient client = new HttpClient();
-            int year = int.Parse(filename.Substring(filename.Length - 4, 4));
+            int year;
+            if (!int.TryParse(filename.Substring(filename.Length - 4, 4), out year))
+            {
+                return;
+            }
             using (StreamReader reader = new StreamReader(teamFile))
             {
                 do
                 {
                     string teamData = reader.ReadLine();
-                    string[] fields = teamData.Split(',');
+                    string[] fields = SplitWithQuotes(teamData);
                     if (fields.Count() == 4)
                     {
                         try
@@ -466,6 +486,11 @@ namespace CQRSLite_Retrosheet.LoadGames
 
         private static async Task ProcessRosterFileAsync(string filename, Stream rosterFile, string webServiceBaseURL)
         {
+            if (filename == "AS3315.ROS" || filename == "MULTTEAM.ROS")
+            {
+                return; // unwanted files in allas.zip
+            }
+
             Console.WriteLine(filename + DateTime.Now.ToString(" MM/dd/yyyy HH:mm:ss.fff"));
 
             HttpClient client = new HttpClient();
@@ -476,7 +501,7 @@ namespace CQRSLite_Retrosheet.LoadGames
                 do
                 {
                     string rosterData = reader.ReadLine();
-                    string[] fields = rosterData.Split(',');
+                    string[] fields = SplitWithQuotes(rosterData);
                     if (fields.Count() >= 5)
                     {
                         try
@@ -530,5 +555,36 @@ namespace CQRSLite_Retrosheet.LoadGames
                 Console.WriteLine("Inside CALLAPI: " + methodName + " : " + jsonContent + " : " + ex.GetBaseException().Message);
             }
         } // CallAPI
+
+        private static string[] SplitWithQuotes(string line)
+        {
+            // handles simple cases of strings containing commas inside quoted fields
+
+            if (line.IndexOf('"') < 0)
+            {
+                return line.Split(',');
+            }
+
+            List<string> fields = new List<string>();
+
+            String remaining = line + ",";
+            while (remaining.Length > 0)
+            {
+                if (remaining[0] == '"')
+                {
+                    int len = remaining.IndexOf("\",");
+                    fields.Add(remaining.Substring(1, len - 1));
+                    remaining = remaining.Substring(len + 2);
+                }
+                else
+                {
+                    int len = remaining.IndexOf(",");
+                    fields.Add(remaining.Substring(0, len));
+                    remaining = remaining.Substring(len + 1);
+                }
+            }
+
+            return fields.ToArray();
+        }
     } // Program
 } // CQRSLite_Retrosheet.LoadGames

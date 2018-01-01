@@ -165,7 +165,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
             bool hr = Regex.IsMatch(bp, @"^H(?!P)");
             bool sacHit = Regex.IsMatch(mod, @"^SH") || Regex.IsMatch(mod, @"\/SH");
             bool sacFly = Regex.IsMatch(mod, @"^SF") || Regex.IsMatch(mod, @"\/SF");
-            bool bunt = sacHit || Regex.IsMatch(mod, @"(?<!COU)B(?!R|INT|OOT|S)");
+            bool bunt = sacHit || Regex.IsMatch(mod, @"(?<!COU|P)B(?!R|INT|OOT|S)");
             bool foul = Regex.IsMatch(et, @"7LDF|7LF|7LSF|5DF|5F|25F|2F|23F|3F|3DF|9LSF|9LF|9DF|FL|FLE|5SF|2RF|3SF|2LF|LMF|LDF|LF");
             bool wildPitch = Regex.IsMatch(et, @"WP");
             bool passedBall = Regex.IsMatch(et, @"PB");

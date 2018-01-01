@@ -4,6 +4,7 @@ using CQRSLite_Retrosheet.Domain.Events;
 using CQRSLite_Retrosheet.Domain.ReadModel;
 using CQRSLite_Retrosheet.Domain.Requests;
 using System;
+using System.Text.RegularExpressions;
 
 namespace CQRSLite_Retrosheet.Web.AutoMapperConfig
 {
@@ -33,8 +34,9 @@ namespace CQRSLite_Retrosheet.Web.AutoMapperConfig
             play.BasicPlay = source.Details.BasicPlay;
             play.Modifier = source.Details.Modifier;
             play.Batter = source.Batter;
-            play.Balls = source.CountOnBatter == "" ? (int?)null : source.CountOnBatter[0] == '?' ? (int?)null : int.Parse(source.CountOnBatter[0].ToString());
-            play.Strikes = source.CountOnBatter == "" ? (int?)null : source.CountOnBatter[1] == '?' ? (int?)null : int.Parse(source.CountOnBatter[1].ToString());
+            // CountOnBatter should be ?? if it is not an actual count.  Source data commonly does not conform to this convention, but I don't want this to be a fatal error. 
+            play.Balls = Regex.IsMatch(source.CountOnBatter, "^[0-9]{2}$") ? int.Parse(source.CountOnBatter[0].ToString()) : (int?)null;
+            play.Strikes = Regex.IsMatch(source.CountOnBatter, "^[0-9]{2}$") ? int.Parse(source.CountOnBatter[1].ToString()) : (int?)null;
             play.Pitches = source.Pitches;
             play.Runner1 = source.Details.Runner1;
             play.Runner2 = source.Details.Runner2;

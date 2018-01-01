@@ -33,7 +33,7 @@ namespace CQRSLite_Retrosheet.Domain.Requests
             //RuleFor(x => x.Details).Must(x => CheckEventNumber(x)).WithMessage("Invalid event number.");
             RuleFor(x => x.Details).Must(x => x.OutsOnPlay <= 3).WithMessage("No more than 3 outs per half inning.");
 
-            RuleFor(x => x.Details).Must(x => !(x.HitValue > 0 && x.Foul)).WithMessage("Foul balls can't be hits.");
+            RuleFor(x => x.Details).Must(x => !(x.HitValue > 0 && x.Foul)).WithMessage("Foul balls can't be hits.").WithSeverity(Severity.Warning);
             RuleFor(x => x.Details).Must(x => CheckRunnerExists(x)).WithMessage("Base runner not on base at start of play.");
             RuleFor(x => x.Details).Must(x => CheckOneRunnerPerBag(x)).WithMessage("Max 1 runner per bag at end of play.");
             RuleFor(x => x.Details).Must(x => CheckPassedRunners(x)).WithMessage("Runners can't pass other runners.");
