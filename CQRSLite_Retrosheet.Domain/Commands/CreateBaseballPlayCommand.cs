@@ -17,8 +17,8 @@ namespace CQRSLite_Retrosheet.Domain.Commands
         public readonly bool LastPlay;
         public readonly BaseballPlayDetails Details;
 
-        public CreateBaseballPlayCommand(Guid id, string retrosheetGameId, int eventNumber, int lineupChangeSequence, int inning, int teamAtBat, string batter,
-            string countOnBatter, string pitches, string eventText, bool lastPlay, BaseballPlayDetails details)
+        public CreateBaseballPlayCommand(Guid id, string retrosheetGameId, int eventNumber, int lineupChangeSequence, int inning, int teamAtBat, 
+            string batter, string countOnBatter, string pitches, string eventText, bool lastPlay, BaseballPlayDetails details)
         {
             Id = id;
             RetrosheetGameId = retrosheetGameId;

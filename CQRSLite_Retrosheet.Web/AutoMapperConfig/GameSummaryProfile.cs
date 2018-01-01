@@ -13,12 +13,11 @@ namespace CQRSLite_Retrosheet.Web.AutoMapperConfig
         public GameSummaryProfile()
         {
             CreateMap<CreateGameSummaryRequest, CreateGameSummaryCommand>()
-                .ConstructUsing(x => new CreateGameSummaryCommand(Guid.NewGuid(), x.RetrosheetGameId, x.AwayTeam, x.HomeTeam, bool.Parse(x.UseDH), x.ParkCode, 
-                    x.WinningPitcher, x.LosingPitcher, x.SavePitcher, (bool)x.HasValidationErrors, x.GameDay, x.HomeTeamFinalScore, x.AwayTeamFinalScore));
+                .ConstructUsing(x => new CreateGameSummaryCommand(Guid.NewGuid(), x.RetrosheetGameId, x.AwayTeam, x.HomeTeam, bool.Parse(x.UseDH), x.HomeTeamBatsFirst,
+                    x.ParkCode, x.WinningPitcher, x.LosingPitcher, x.SavePitcher, (bool)x.HasValidationErrors, x.GameDay, x.HomeTeamFinalScore, x.AwayTeamFinalScore));
 
             CreateMap<GameSummaryCreatedEvent, GameSummaryRM>()
                 .ForMember(dest => dest.GameDay, opt => opt.MapFrom(src => DateTime.ParseExact(src.GameDay, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None)));
-
         }
     }
 }

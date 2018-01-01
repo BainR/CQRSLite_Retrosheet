@@ -26,6 +26,7 @@ namespace CQRSLite_Retrosheet.Web.AutoMapperConfig
 
             play.Inning = source.Details.Inning;
             play.TeamAtBat = source.Details.TeamAtBat;
+            play.IsBottomHalf = source.Details.IsBottomHalf;
             play.BattingOrder = source.Details.BattingOrder;
             play.RetrosheetGameId = source.RetrosheetGameId;
             play.EventNumber = source.EventNumber;

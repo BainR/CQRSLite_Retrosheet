@@ -80,7 +80,7 @@ namespace CQRSLite_Retrosheet.Web.Controllers
                 return StatusCode(500, "Previous play data not available on server.");
             }
 
-            BaseballPlayDetails details = new BaseballPlayDetails(previousPlay, request.RetrosheetGameId, request.EventNumber, request.EventText, request.LastPlay);
+            BaseballPlayDetails details = new BaseballPlayDetails(previousPlay, request.RetrosheetGameId, request.EventNumber, request.TeamAtBat.ToString(), request.EventText, request.LastPlay);
             request.Details = details;
 
             CreateBaseballPlayRequestValidator validator = new CreateBaseballPlayRequestValidator();

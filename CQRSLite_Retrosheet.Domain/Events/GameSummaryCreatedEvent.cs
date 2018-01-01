@@ -16,10 +16,11 @@ namespace CQRSLite_Retrosheet.Domain.Events
         public readonly string GameDay;
         public readonly int? HomeTeamFinalScore;
         public readonly int? AwayTeamFinalScore;
+        public readonly bool HomeTeamBatsFirst;
 
         public GameSummaryCreatedEvent(Guid id, string retrosheetGameId, string awayTeam, string homeTeam, bool useDH, string parkCode,
             string winningPitcher, string losingPitcher, string savePitcher, bool hasValidationErrors, string gameday,
-            int? homeTeamFinalScore, int? awayTeamFinalScore)
+            int? homeTeamFinalScore, int? awayTeamFinalScore, bool homeTeamBatsFirst)
         {
             Id = id;
             RetrosheetGameId = retrosheetGameId;
@@ -34,6 +35,7 @@ namespace CQRSLite_Retrosheet.Domain.Events
             GameDay = gameday;
             HomeTeamFinalScore = homeTeamFinalScore;
             AwayTeamFinalScore = awayTeamFinalScore;
+            HomeTeamBatsFirst = homeTeamBatsFirst;
         }
     }
 }

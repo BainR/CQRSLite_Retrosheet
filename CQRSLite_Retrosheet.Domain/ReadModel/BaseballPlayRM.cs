@@ -6,6 +6,7 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
     {
         public int Inning { get; set; }
         public string TeamAtBat { get; set; }
+        public bool IsBottomHalf { get; set; }
         public int BattingOrder { get; set; }
         public string RetrosheetGameId { get; set; }
         public int EventNumber { get; set; }

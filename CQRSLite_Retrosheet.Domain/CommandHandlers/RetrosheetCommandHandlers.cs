@@ -37,7 +37,7 @@ namespace CQRSLite_Retrosheet.Domain.CommandHandlers
         {
             GameSummary gameSummary = new GameSummary(command.Id, command.RetrosheetGameId, command.AwayTeam, command.HomeTeam,
                 command.UseDH, command.ParkCode, command.WinningPitcher, command.LosingPitcher, command.SavePitcher,
-                command.HasValidationErrors, command.GameDay, command.HomeTeamFinalScore, command.AwayTeamFinalScore);
+                command.HasValidationErrors, command.GameDay, command.HomeTeamFinalScore, command.AwayTeamFinalScore, command.HomeTeamBatsFirst);
             await _session.Add(gameSummary);
             await _session.Commit();
         }
