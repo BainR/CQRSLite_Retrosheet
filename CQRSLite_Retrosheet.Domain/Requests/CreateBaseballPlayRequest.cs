@@ -41,7 +41,8 @@ namespace CQRSLite_Retrosheet.Domain.Requests
 
             RuleFor(x => x).Must(x => CheckInning(x)).WithName("Inning").WithMessage("Wrong Inning");
             RuleFor(x => x).Must(x => CheckTeamAtBat(x)).WithName("TeamAtBat").WithMessage("Wrong TeamAtBat");
-            RuleFor(x => x.CountOnBatter).Must(CheckCountOnBatter).WithMessage("Invalid count on batter.").WithSeverity(Severity.Warning); // This is violated too often to track for a non-fatal error.
+            RuleFor(x => x.CountOnBatter).NotEmpty().WithMessage("Empty count on batter.").WithSeverity(Severity.Warning); // This is violated too often to track for a non-fatal error.
+            RuleFor(x => x.CountOnBatter).Must(CheckCountOnBatter).WithMessage(x => string.Format("Invalid count on batter: {0}", x.CountOnBatter)).WithSeverity(Severity.Warning);  //("Invalid count on batter.").WithSeverity(Severity.Warning); // This is violated too often to track for a non-fatal error.
 
             RuleFor(x => x).Must(x => (x.Details.EndOfGame && x.LastPlay) || !x.LastPlay).WithName("LastPlay").WithMessage("Unexpected end of game.");
 
@@ -121,9 +122,9 @@ namespace CQRSLite_Retrosheet.Domain.Requests
 
         private bool CheckCountOnBatter(string countOnBatter)
         {
-            return countOnBatter.Length == 2 && (countOnBatter == "??" ||
+            return string.IsNullOrEmpty(countOnBatter) || (countOnBatter.Length == 2 && (countOnBatter == "??" ||
                 ((new char[] { '0', '1', '2', '3' }).Contains(countOnBatter[0])
-                && (new char[] { '0', '1', '2' }).Contains(countOnBatter[1])));
+                && (new char[] { '0', '1', '2' }).Contains(countOnBatter[1]))));
         }
     }
 }
