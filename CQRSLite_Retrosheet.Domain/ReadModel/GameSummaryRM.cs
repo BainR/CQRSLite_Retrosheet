@@ -7,7 +7,8 @@ namespace CQRSLite_Retrosheet.Domain.ReadModel
         public string RetrosheetGameId { get; set; }
         public string AwayTeam { get; set; }
         public string HomeTeam { get; set; }
-        public bool UseDH { get; set; } 
+        public bool UseDH { get; set; }
+        public bool HomeTeamBatsFirst { get; set; }
         public string ParkCode { get; set; }
         public string WinningPitcher { get; set; }
         public string LosingPitcher { get; set; }

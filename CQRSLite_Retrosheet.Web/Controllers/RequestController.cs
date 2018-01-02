@@ -45,6 +45,7 @@ namespace CQRSLite_Retrosheet.Web.Controllers
                 request.HasValidationErrors = false;
                 request.HomeTeamFinalScore = lastPlayOfGame.EndOfPlay_HomeScore;
                 request.AwayTeamFinalScore = lastPlayOfGame.EndOfPlay_VisitorScore;
+                request.HomeTeamBatsFirst = (lastPlayOfGame.TeamAtBat == "V" && lastPlayOfGame.IsBottomHalf == true) || (lastPlayOfGame.TeamAtBat == "H" && lastPlayOfGame.IsBottomHalf == false);
             }
             request.GameDay = request.RetrosheetGameId.Substring(3, 8);
             var cmd = _mapper.Map<CreateGameSummaryCommand>(request);
